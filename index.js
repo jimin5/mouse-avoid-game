@@ -19,9 +19,9 @@ const player = new GameObject('image.png', 50, 50);
 const obstacle = new GameObject('image.png', 60, 60);
 const objectArray = [];
 var isPaused = false;
-var main = true;
-var help = false;
-var play = false;
+var main = true;    //시작 화면
+var help = false;   //도움말 화면
+var play = false;   //게임 화면
 
 //화면 아래에서 리스폰
 player.x = canvas.width/2 - 30;
@@ -60,9 +60,20 @@ function onKeyUp(event)
     downKeys[event.code] = false;
 }
 
-if(main) window.requestAnimationFrame(main_func);
-if(help) window.requestAnimationFrame(help_func);
-if(play) window.requestAnimationFrame(run); 
+function printScreen()    //화면을 바꿔줌
+{
+    if(main === true){
+        window.requestAnimationFrame(main_func);
+    }
+    else if(help === true){
+        window.requestAnimationFrame(help_func);
+    }
+    else if(play === true){
+        window.requestAnimationFrame(run);
+    }
+}
+
+printScreen();
 
 let gameover = false;
 
@@ -108,7 +119,10 @@ function main_func()
         context.fillText("HELP!", canvas.width/2-65, canvas.height/2+140);
     //}
 
-    window.requestAnimationFrame(main_func);
+    //TODO: Start 클릭 -> run(), Help 클릭 -> help_func()
+
+    printScreen();
+
 }
 
 function help_func()
@@ -127,7 +141,7 @@ function help_func()
     context.fillText("오랫동안 살아 남으세요!", canvas.width/2-120, 500);
 
     context.fillText("BACK", 30, 570);
-    context.fillText("START!", 500, 570)
+    context.fillText("START!", 500, 570);
 
     //TODO: 마우스가 올라가 있을 때 bluh
 
@@ -227,7 +241,7 @@ function run()
     if (downKeys['ArrowDown'])
         player.y += 10;
 
-    window.requestAnimationFrame(run);
+    printScreen();
 }
 
 function checkCollision(a, b) {
