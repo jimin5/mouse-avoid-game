@@ -87,8 +87,8 @@ function main_func()
     context.fillText("Mouse Avoid Game",canvas.width/2-300,canvas.height/2 - 100);
 
     context.font = "45px malgun gothic";
-    context.fillText("START!", canvas.width/2-80, canvas.height/2+70)
-    context.fillText("HELP!", canvas.width/2-65, canvas.height/2+140)
+    context.fillText("START!", canvas.width/2-80, canvas.height/2+70);
+    context.fillText("HELP!", canvas.width/2-65, canvas.height/2+140);
     context.fill();
 
     //TODO: 마우스가 올라가 있을 때 bluh
@@ -103,7 +103,7 @@ function main_func()
         context.fillRect(canvas.width/2-80, canvas.height/2+30, 150, 50);
 
         context.fillStyle = "purple"
-        context.fillText("START!", canvas.width/2-80, canvas.height/2+70)
+        context.fillText("START!", canvas.width/2-80, canvas.height/2+70);
     //}
 
     //if(Help 위에 onMouseOver == true){
@@ -213,7 +213,7 @@ function run()
         if(obj.y == canvas.height){ //canvas.height로 게임화면 세로사이즈 가져옴
             ++score;
         }
-
+        
         context.font = "20px malgun gothic"; //폰트의 크기, 글꼴체 지정
         context.fillStyle = "black"; //색상지정
         context.fillText("score : "+score,canvas.width-100,30); //점수를 지정한 위치에 찍어준다.
