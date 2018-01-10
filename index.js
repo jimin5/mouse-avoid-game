@@ -15,11 +15,13 @@ function GameObject(src, width, height)
     this.long = false;
 }
 
-const player = new GameObject('surprise.png', 50, 50);
-const obstacle = new GameObject('ddong.png', 60, 60);
+const player = new GameObject('image.png', 50, 50);
+const obstacle = new GameObject('image.png', 60, 60);
 const objectArray = [];
 var isPaused = false;
-var play = true;
+var main = true;
+var help = false;
+var play = false;
 
 //화면 아래에서 리스폰
 player.x = canvas.width/2 - 30;
@@ -34,7 +36,7 @@ setInterval(function() {
     if(isPaused) {
       play = false;
     }
-    const newObstacle = new GameObject('ddong.png', 60, 60);
+    const newObstacle = new GameObject('image.png', 60, 60);
     objectArray.push(newObstacle);
     newObstacle.isObstacle = true;
 
@@ -58,9 +60,80 @@ function onKeyUp(event)
     downKeys[event.code] = false;
 }
 
-if(play) window.requestAnimationFrame(run);
+if(main) window.requestAnimationFrame(main_func);
+if(help) window.requestAnimationFrame(help_func);
+if(play) window.requestAnimationFrame(run); 
 
 let gameover = false;
+
+function main_func()
+{
+    context.fillStyle = "#e7c67e";
+    context.fillRect(0, 0, canvas.width, canvas.height); 
+
+    context.font = "65px malgun gothic"; //폰트의 크기, 글꼴체 지정
+    context.fillStyle = "purple"; //색상지정
+    context.fillText("Mouse Avoid Game",canvas.width/2-300,canvas.height/2 - 100);
+
+    context.font = "45px malgun gothic";
+    context.fillText("START!", canvas.width/2-80, canvas.height/2+70)
+    context.fillText("HELP!", canvas.width/2-65, canvas.height/2+140)
+    context.fill();
+
+    //TODO: 마우스가 올라가 있을 때 bluh
+    //테두리
+    //if(Start 위에 onMouseOver == true){
+    //    context.strokeStyle = "pink";
+    //    context.strokeText("START!", canvas.width/2-80, canvas.height/2+70)
+    //}
+    //
+    //else{
+        context.fillStyle = "#e7c67e"
+        context.fillRect(canvas.width/2-80, canvas.height/2+30, 150, 50);
+
+        context.fillStyle = "purple"
+        context.fillText("START!", canvas.width/2-80, canvas.height/2+70)
+    //}
+
+    //if(Help 위에 onMouseOver == true){
+    //    context.strokeStyle = "pink";
+    //    context.strokeText("HELP!", canvas.width/2-65, canvas.height/2+140)
+    //}
+    //
+    //else{
+        context.fillStyle = "#e7c67e"
+        context.fillRect(canvas.width/2-65, canvas.height/2+100, 120, 50);
+
+        context.fillStyle = "purple"
+        context.fillText("HELP!", canvas.width/2-65, canvas.height/2+140);
+    //}
+
+    window.requestAnimationFrame(main_func);
+}
+
+function help_func()
+{
+    context.fillStyle = "#e7c67e";
+    context.fillRect(0, 0, canvas.width, canvas.height); 
+
+    context.font = "40px malgun gothic";
+    context.fillStyle = "purple";
+    context.fillText("-How To Play-", canvas.width/2-140, 100);
+
+    context.font = "20px malgun gothic";
+    context.fillText(": 충돌하면 제한 시간 5초 감소", canvas.width/2-80, 200);
+    context.fillText(": 먹으면 제한 시간 5초 증가", canvas.width/2-80, 300);
+    context.fillText(": 먹으면 5초 동안 속도 증가", canvas.width/2-80, 400);
+    context.fillText("오랫동안 살아 남으세요!", canvas.width/2-120, 500);
+
+    context.fillText("BACK", 30, 570);
+    context.fillText("START!", 500, 570)
+
+    //TODO: 마우스가 올라가 있을 때 bluh
+
+
+    context.fill();
+}
 
 function run()
 {
