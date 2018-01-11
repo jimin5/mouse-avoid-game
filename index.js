@@ -1,12 +1,16 @@
 const canvas = document.getElementById('panel');
 const context = canvas.getContext('2d');
 
-function GameObject(src, width, height)
+function GameObject(cx, cy, width, height)
 {
+    //이미지를 자를떄 기준의 좌표값
+    this.cx = cx;
+    this.cy = cy;
+    //이미지가 화면에 찍힐때의 실질적 좌표
     this.x = 0;
     this.y = 0;
     this.image = new Image();
-    this.image.src = src;
+    this.image.src = 'image.png';
     this.width = width;
     this.height = height;
     this.direction = 0;
@@ -15,13 +19,40 @@ function GameObject(src, width, height)
     this.long = false;
 }
 
-const player = new GameObject('image.png', 50, 50);
-const obstacle = new GameObject('image.png', 60, 60);
+function Rect(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+}
+
+const spriteDefinition = {
+    MOUSE_UP: new Rect(0, 2, 70, 78),
+    MOUSE_DOWN:new Rect(70, 2, 70, 78),
+    MOUSE_RIGHT: new Rect(140, 2, 70, 71),
+    MOUSE_LEFT: new Rect(210, 2, 70, 71),
+    UP_HURT: new Rect(512, 2, 55, 78),
+    DOWN_HURT: new Rect(575, 2, 55, 78),
+    RIGHT_HURT: new Rect(107, 2, 70, 71),
+    LEFT_HURT: new Rect(293, 2, 70, 71),
+    FORK_UP: new Rect(14, 82, 21, 114),
+    FORK_DOWN: new Rect(164, 82, 21, 114),
+    FORK_RIGHT: new Rect(42, 114, 114, 21),
+    FORK_LEFT: new Rect(42, 90, 114, 21),
+    KNIFE_UP: new Rect(195, 97, 31, 98),
+    KNIFE_DOWN: new Rect(338, 97, 31, 98),
+    KNIFE_RIGHT: new Rect(234, 122, 98, 31),
+    KNIFE_LEFT: new Rect(233, 90, 98, 31),
+    CHEESE: new Rect(389, 90, 40, 32),
+    PEPPER: new Rect(449, 91, 27, 45)
+}
+
+const src = 'image.png';
+const player = new GameObject(210, 2, 70, 71);
+//const obstacle = new GameObject(src, 60, 60);
 const objectArray = [];
 var isPaused = false;
-var main = true;    //시작 화면
-var help = false;   //도움말 화면
-var play = false;   //게임 화면
+var play = true;
 
 //화면 아래에서 리스폰
 player.x = canvas.width/2 - 30;
@@ -33,16 +64,16 @@ let time = 120;
 
 // 1초마다 한번씩 실행
 setInterval(function() {
-    if(isPaused) {
-      play = false;
-    }
-    const newObstacle = new GameObject('image.png', 60, 60);
-    objectArray.push(newObstacle);
-    newObstacle.isObstacle = true;
+    if(isPaused) play = false;
+    if(play){
+      const newObstacle = new GameObject(445, 91, 30, 45);
+      objectArray.push(newObstacle);
+      newObstacle.isObstacle = true;
 
-    newObstacle.direction = parseInt(Math.random()*3);
-    newObstacle.x = Math.random() * 440;//0에서 440사이의 소수 반환
-    newObstacle.y = -newObstacle.height;
+      newObstacle.direction = parseInt(Math.random()*3);
+      newObstacle.x = Math.random() * 440;//0에서 440사이의 소수 반환
+      newObstacle.y = -newObstacle.height;
+    }
 }, 1000);
 
 const downKeys = {};
@@ -60,94 +91,9 @@ function onKeyUp(event)
     downKeys[event.code] = false;
 }
 
-function printScreen()    //화면을 바꿔줌
-{
-    if(main === true){
-        window.requestAnimationFrame(main_func);
-    }
-    else if(help === true){
-        window.requestAnimationFrame(help_func);
-    }
-    else if(play === true){
-        window.requestAnimationFrame(run);
-    }
-}
-
-printScreen();
+if(play) window.requestAnimationFrame(run);
 
 let gameover = false;
-
-function main_func()
-{
-    context.fillStyle = "#e7c67e";
-    context.fillRect(0, 0, canvas.width, canvas.height); 
-
-    context.font = "65px malgun gothic"; //폰트의 크기, 글꼴체 지정
-    context.fillStyle = "purple"; //색상지정
-    context.fillText("Mouse Avoid Game",canvas.width/2-300,canvas.height/2 - 100);
-
-    context.font = "45px malgun gothic";
-    context.fillText("START!", canvas.width/2-80, canvas.height/2+70);
-    context.fillText("HELP!", canvas.width/2-65, canvas.height/2+140);
-    context.fill();
-
-    //TODO: 마우스가 올라가 있을 때 bluh
-    //테두리
-    //if(Start 위에 onMouseOver == true){
-    //    context.strokeStyle = "pink";
-    //    context.strokeText("START!", canvas.width/2-80, canvas.height/2+70)
-    //}
-    //
-    //else{
-        context.fillStyle = "#e7c67e"
-        context.fillRect(canvas.width/2-80, canvas.height/2+30, 150, 50);
-
-        context.fillStyle = "purple"
-        context.fillText("START!", canvas.width/2-80, canvas.height/2+70);
-    //}
-
-    //if(Help 위에 onMouseOver == true){
-    //    context.strokeStyle = "pink";
-    //    context.strokeText("HELP!", canvas.width/2-65, canvas.height/2+140)
-    //}
-    //
-    //else{
-        context.fillStyle = "#e7c67e"
-        context.fillRect(canvas.width/2-65, canvas.height/2+100, 120, 50);
-
-        context.fillStyle = "purple"
-        context.fillText("HELP!", canvas.width/2-65, canvas.height/2+140);
-    //}
-
-    //TODO: Start 클릭 -> run(), Help 클릭 -> help_func()
-
-    printScreen();
-
-}
-
-function help_func()
-{
-    context.fillStyle = "#e7c67e";
-    context.fillRect(0, 0, canvas.width, canvas.height); 
-
-    context.font = "40px malgun gothic";
-    context.fillStyle = "purple";
-    context.fillText("-How To Play-", canvas.width/2-140, 100);
-
-    context.font = "20px malgun gothic";
-    context.fillText(": 충돌하면 제한 시간 5초 감소", canvas.width/2-80, 200);
-    context.fillText(": 먹으면 제한 시간 5초 증가", canvas.width/2-80, 300);
-    context.fillText(": 먹으면 5초 동안 속도 증가", canvas.width/2-80, 400);
-    context.fillText("오랫동안 살아 남으세요!", canvas.width/2-120, 500);
-
-    context.fillText("BACK", 30, 570);
-    context.fillText("START!", 500, 570);
-
-    //TODO: 마우스가 올라가 있을 때 bluh
-
-
-    context.fill();
-}
 
 function run()
 {
@@ -164,7 +110,7 @@ function run()
         return;
     }
 
-    context.fillStyle = 'mistyrose';
+    context.fillStyle = '#e7c67e';
     context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기(브라우저 크기 받아와서)
     //fillRect 대신에 이미지로 바꾸기
 
@@ -173,8 +119,8 @@ function run()
         context.globalAlpha = obj.alpha;
 
         context.drawImage(obj.image,
-            obj.x, obj.y,
-            obj.width, obj.height);
+            obj.cx, obj.cy,
+            obj.width, obj.height, obj.x, obj.y, obj.width, obj.height);
 
         if (obj === player) {
             //사용자 사라짐 방지
@@ -213,7 +159,7 @@ function run()
         if(obj.y == canvas.height){ //canvas.height로 게임화면 세로사이즈 가져옴
             ++score;
         }
-        
+
         context.font = "20px malgun gothic"; //폰트의 크기, 글꼴체 지정
         context.fillStyle = "black"; //색상지정
         context.fillText("score : "+score,canvas.width-100,30); //점수를 지정한 위치에 찍어준다.
@@ -241,7 +187,7 @@ function run()
     if (downKeys['ArrowDown'])
         player.y += 10;
 
-    printScreen();
+    window.requestAnimationFrame(run);
 }
 
 function checkCollision(a, b) {
