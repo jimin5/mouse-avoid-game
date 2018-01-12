@@ -6,10 +6,10 @@ const objectArray = [];
 let isPaused = false;
 let play = true;
 let score = 0;
-let time = 120;
 let level = 800;
+let life = 3;
 
-let player = new GameObject(2, 2, 65, 80);
+let player = new GameObject(2, 2, 47, 57);
 objectArray.push(player);
 
 player.x = canvas.width/2 - player.width/2;
@@ -32,7 +32,8 @@ function GameObject(cx, cy, width, height)
     this.side = 0;
 
     this.isObstacle = false;//장애물인지 확인
-    this.long = false;
+    this.cheese = false;
+    this.pepper = false;
 }
 
 function Rect(x, y, width, height) {
@@ -43,14 +44,14 @@ function Rect(x, y, width, height) {
 }
 
 const character = {
-    MOUSE_UP: new Rect(2, 2, 65, 80),
-    MOUSE_DOWN:new Rect(131, 2, 65, 80),
-    MOUSE_RIGHT: new Rect(260, 2, 67, 71),
-    MOUSE_LEFT: new Rect(409, 2, 67, 71),
-    UP_HURT: new Rect(67, 2, 64, 80),
-    DOWN_HURT: new Rect(196, 2, 64, 80),
-    RIGHT_HURT: new Rect(327, 2, 68, 74),
-    LEFT_HURT: new Rect(476, 2, 68, 74),
+    MOUSE_UP: new Rect(2, 2, 47, 57),
+    MOUSE_DOWN:new Rect(95, 2, 47, 57),
+    MOUSE_RIGHT: new Rect(188, 2, 52, 56),
+    MOUSE_LEFT: new Rect(302, 2, 52, 56),
+    UP_HURT: new Rect(49, 2, 46, 57),
+    DOWN_HURT: new Rect(142, 2, 46, 57),
+    RIGHT_HURT: new Rect(240, 2, 52, 58),
+    LEFT_HURT: new Rect(354, 2, 52, 58),
     FORK_UP: new Rect(14, 82, 21, 115),
     FORK_DOWN: new Rect(164, 82, 21, 115),
     FORK_RIGHT: new Rect(42, 114, 115, 21),
@@ -60,7 +61,26 @@ const character = {
     KNIFE_RIGHT: new Rect(236, 122, 98, 31),
     KNIFE_LEFT: new Rect(233, 90, 98, 31),
     CHEESE: new Rect(389, 90, 40, 32),
-    PEPPER: new Rect(445, 91, 30, 45)
+    PEPPER: new Rect(445, 91, 30, 45),
+    HEART: new Rect(389, 152, 23, 22)
+}
+
+function heart(){
+
+}
+
+function cheese(){
+  let newObstacle = new GameObject(character.CHEESE.x, character.CHEESE.y,
+  character.CHEESE.width, character.CHEESE.height);
+  newObstacle.cheese = true;
+  objectPush(newObstacle);
+}
+
+function pepper(){
+  let newObstacle = new GameObject(character.PEPPER.x, character.PEPPER.y,
+  character.PEPPER.width, character.PEPPER.height);
+  newObstacle.pepper = true;
+  objectPush(newObstacle);
 }
 
 function Knife(dir){
@@ -228,10 +248,15 @@ function right(obj){
 setInterval(function() {
     if(isPaused) play = false;
     if(play){
-      let n = parseInt(Math.random()*2);
-      let dir = parseInt(Math.random()*4);
-      if(n) Knife(dir);
-      else Fork(dir);
+      let p = parseInt(Math.random()*15);
+      if(!p)cheese();
+      else if(p == 1)pepper();
+      else{
+        let n = parseInt(Math.random()*2);
+        let dir = parseInt(Math.random()*4);
+        if(n) Knife(dir);
+        else Fork(dir);
+      }
     }
 }, level*=(9/10));
 
@@ -304,12 +329,17 @@ function run()
             else if(obj.side == 1) left(obj);
             else if(obj.side == 2) up(obj);
             else right(obj);
-
-            if(obj.long) longer(player, obj);
-            else if(obj.long == false) shorter(player, obj);
         }
 
-        if(checkCollision(player, obj)) gameover = true;
+        if(checkCollision(player, obj)) {
+          if(obj.cheese){
+
+          }
+          else if(obj.pepper){
+
+          }
+          else gameover = true;
+        }
     }
 
     window.addEventListener('blur', function(e) {
@@ -360,18 +390,4 @@ function checkCollision(a, b) {
         a.y > b.y + b.height ||
         a.y + a.height < b.y
     );
-}
-
-function longer(player, obj){
-    if(checkCollision(player, obj)){
-        time += 5;
-        if(time >= 120)time = 120;
-    }
-}
-
-function shorter(player, obj){
-    if(checkCollision(player, obj)){
-        time -= 5;
-        if(time <= 0)gameover = true;
-    }
 }
