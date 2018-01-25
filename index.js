@@ -5,16 +5,19 @@ const src = 'resource/images/img_Character.png';
 const objectArray = [];
 let isPaused = false;
 let play = true;
+let main_screen = false;
 let score = 0;
-let level = 800;
+let level = 700;
 let life = 3;
+let move = 10;
+let gameover = false;
 
 let player = new GameObject(2, 2, 47, 57);
 objectArray.push(player);
 
 player.x = canvas.width/2 - player.width/2;
 player.y = canvas.height/2 - player.height/2;
-//화면 아래에서 리스폰
+//화면 중간에서 리스폰
 
 function GameObject(cx, cy, width, height)
 {
@@ -31,9 +34,14 @@ function GameObject(cx, cy, width, height)
     this.direction = 0;
     this.side = 0;
 
-    this.isObstacle = false;//장애물인지 확인
-    this.cheese = false;
-    this.pepper = false;
+    this.isObstacle = false; //장애물인지 확인
+    this.scored = false; //점수처리 확인
+    this.eaten = false; //먹혔는지 확인
+    this.cheese = false; //치즈인지 확인
+    this.pepper = false; //고추인지 확인
+    this.hurt = false; //다쳤는지 확인
+    this.cc = false; //cheese collision
+    this.pc = false; //pepper collision
 }
 
 function Rect(x, y, width, height) {
@@ -62,12 +70,35 @@ const character = {
     KNIFE_LEFT: new Rect(233, 90, 98, 31),
     CHEESE: new Rect(389, 90, 40, 32),
     PEPPER: new Rect(445, 91, 30, 45),
-    HEART: new Rect(389, 152, 23, 22)
+    HEART: new Rect(389, 152, 23, 22),
+    REPLAY: new Rect(431, 12, 36, 36),
+    PAUSE: new Rect(476, 12, 36, 36),
 }
 
-function heart(){
+let heart =
+new GameObject(character.HEART.x, character.HEART.y,
+  character.HEART.width, character.HEART.height);
 
-}
+let gameover_text = new GameObject(0, 0, 460, 104);
+gameover_text.image.src = 'resource/images/text_gameover.png';
+
+let title = new GameObject(0, 0, 1004, 280);
+title.image.src = 'resource/images/title.png';
+
+let start = new GameObject(0, 0, 141, 51);
+start.image.src = 'resource/images/text_start.png';
+
+let help = new GameObject(0, 0, 108, 50);
+help.image.src = 'resource/images/text_help.png';
+
+let replay =
+new GameObject(character.REPLAY.x, character.REPLAY.y,
+  character.REPLAY.width, character.REPLAY.height);
+
+let pause =
+new GameObject(character.PAUSE.x, character.PAUSE.y,
+  character.PAUSE.width, character.PAUSE.height);
+
 
 function cheese(){
   let newObstacle = new GameObject(character.CHEESE.x, character.CHEESE.y,
@@ -276,8 +307,23 @@ function onKeyUp(event)
 }
 
 if(play) window.requestAnimationFrame(run);
+if(main_screen) window.requestAnimationFrame(main);
 
-let gameover = false;
+function main(){
+  context.fillStyle = '#e7c67e';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.drawImage(title.image, 0,
+    canvas.height/2-title.height+30, title.width, title.height);
+
+  context.drawImage(start.image, canvas.width/2-start.width/2,
+    canvas.height/2+60, start.width, start.height);
+
+  context.drawImage(help.image, canvas.width/2-help.width/2,
+      canvas.height/2+start.height+100, help.width, help.height);
+
+  window.requestAnimationFrame(main);
+}
 
 function run()
 {
@@ -286,10 +332,20 @@ function run()
         context.fillStyle = 'black';
         context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기
 
-        context.font = "20px malgun gothic"; //폰트의 크기, 글꼴체 지정
-        context.fillStyle = "red"; //색상지정
-        context.fillText("game over",canvas.width/2-55,canvas.height/2);
-        context.fillText("score : "+score, canvas.width/2-55, canvas.height/2+20)
+        context.font = "30px Impact"; //폰트의 크기, 글꼴체 지정
+        context.fillStyle = '#c02026'; //색상지정
+
+        gameover_text.x = canvas.width/2-gameover_text.width/2;
+        gameover_text.y = canvas.height/2-gameover_text.height - 25;
+        context.drawImage(gameover_text.image, gameover_text.x,
+        gameover_text.y, gameover_text.width, gameover_text.height);
+
+        replay.x = canvas.width/2-replay.width/2;
+        replay.y = canvas.height/2+90;
+        context.drawImage(replay.image, replay.cx, replay.cy, replay.width,
+          replay.height, replay.x, replay.y, replay.width, replay.height);
+
+        context.fillText("score : "+score, canvas.width/2-55, canvas.height/2+45)
         context.fill();
         return;
     }
@@ -298,13 +354,83 @@ function run()
     context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기(브라우저 크기 받아와서)
     //fillRect 대신에 이미지로 바꾸기
 
+    context.font = "20px Impact";
+    context.fillStyle = 'black';
+    context.fillText("score : "+score, 5, 23)
+
+    context.drawImage(pause.image, pause.cx, pause.cy, pause.width,
+        pause.height, canvas.width-pause.width-5 , 5, pause.width, pause.height);
+
     for (let obj of objectArray) {
         // 투명도
         context.globalAlpha = obj.alpha;
 
-        context.drawImage(obj.image,
-            obj.cx, obj.cy,
+        if(!obj.eaten){
+        context.drawImage(obj.image, obj.cx, obj.cy,
             obj.width, obj.height, obj.x, obj.y, obj.width, obj.height);
+          }
+
+          switch(life){
+            case 3: context.drawImage(heart.image, heart.cx, heart.cy, heart.width,
+            heart.height, heart.width*2+15,
+            30, heart.width, heart.height);
+            case 2: context.drawImage(heart.image, heart.cx, heart.cy, heart.width,
+            heart.height, heart.width+10,
+            30, heart.width, heart.height);
+            case 1: context.drawImage(heart.image, heart.cx, heart.cy, heart.width,
+            heart.height, 5,
+            30, heart.width, heart.height);break;
+          }
+
+          if(player.hurt){
+            switch(player.direction){
+              case 0: player.cx = character.LEFT_HURT.x;
+                      player.cy = character.LEFT_HURT.y;
+                      player.width = character.LEFT_HURT.width;
+                      player.height = character.LEFT_HURT.height;
+                      break;
+              case 1: player.cx = character.RIGHT_HURT.x;
+                      player.cy = character.RIGHT_HURT.y;
+                      player.width = character.RIGHT_HURT.width;
+                      player.height = character.RIGHT_HURT.height;
+                      break;
+              case 2: player.cx = character.UP_HURT.x;
+                      player.cy = character.UP_HURT.y;
+                      player.width = character.UP_HURT.width;
+                      player.height = character.UP_HURT.height;
+                      break;
+              case 3: player.cx = character.DOWN_HURT.x;
+                      player.cy = character.DOWN_HURT.y;
+                      player.width = character.DOWN_HURT.width;
+                      player.height = character.DOWN_HURT.height;
+                      break;
+          }
+        }
+
+        else{
+          switch(player.direction){
+            case 0: player.cx = character.MOUSE_LEFT.x;
+                    player.cy = character.MOUSE_LEFT.y;
+                    player.width = character.MOUSE_LEFT.width;
+                    player.height = character.MOUSE_LEFT.height;
+                    break;
+            case 1: player.cx = character.MOUSE_RIGHT.x;
+                    player.cy = character.MOUSE_RIGHT.y;
+                    player.width = character.MOUSE_RIGHT.width;
+                    player.height = character.MOUSE_RIGHT.height;
+                    break;
+            case 2: player.cx = character.MOUSE_UP.x;
+                    player.cy = character.MOUSE_UP.y;
+                    player.width = character.MOUSE_UP.width;
+                    player.height = character.MOUSE_UP.height;
+                    break;
+            case 3: player.cx = character.MOUSE_DOWN.x;
+                    player.cy = character.MOUSE_DOWN.y;
+                    player.width = character.MOUSE_DOWN.width;
+                    player.height = character.MOUSE_DOWN.height;
+                    break;
+          }
+        }
 
         if (obj === player) {
             //사용자 사라짐 방지
@@ -325,20 +451,70 @@ function run()
 
         if (obj.isObstacle) {
             //장애물 여러방향에서 내려오기(장애물 이동방향 기준)
-            if(!obj.side) down(obj);
-            else if(obj.side == 1) left(obj);
-            else if(obj.side == 2) up(obj);
-            else right(obj);
+            if(!obj.side) {
+              if(obj.y > canvas.height && !obj.scored){
+                obj.scored = true;
+                ++score;
+              }
+              down(obj);
+            }
+            else if(obj.side == 1) {
+              if(obj.x < 0 && !obj.scored){
+                obj.scored = true;
+                ++score;
+              }
+              left(obj);
+            }
+            else if(obj.side == 2) {
+              if(obj.y < 0 && !obj.scored){
+                obj.scored = true;
+                ++score;
+              }
+              up(obj);
+            }
+            else {
+              if(obj.x < canvas.width && !obj.scored){
+                obj.scored = true;
+                ++score;
+              }
+              right(obj);
+            }
         }
 
         if(checkCollision(player, obj)) {
           if(obj.cheese){
-
+            if(!player.hurt && life<3 && !player.cc){
+              obj.eaten = true;
+              player.cc = true;
+              ++life;
+              setTimeout(function(){
+                  player.cc = false;
+              },1000);
+            }
           }
+
           else if(obj.pepper){
-
+            if(!player.hurt && !player.pc){
+              obj.eaten = true;
+              player.pc = true;
+              move += 3;
+              setTimeout(function(){
+                  move -= 3;
+                  player.pc = false;
+              },4000);
+            }
           }
-          else gameover = true;
+
+          else {
+            if(!life) gameover = true;
+            else if(!player.hurt){
+              --life;
+              player.hurt = true;
+              setTimeout(function(){
+                  player.hurt = false;
+              },1000);
+            }
+          }
         }
     }
 
@@ -353,32 +529,20 @@ function run()
     });
 
     if (downKeys['ArrowLeft']){
-        player.x -= 10;
-        player.cx = character.MOUSE_LEFT.x;
-        player.cy = character.MOUSE_LEFT.y;
-        player.width = character.MOUSE_LEFT.width;
-        player.height = character.MOUSE_LEFT.height;
-      }
+        player.x -= move;
+        player.direction = 0;
+    }
     if (downKeys['ArrowRight']){
-        player.x += 10;
-        player.cx = character.MOUSE_RIGHT.x;
-        player.cy = character.MOUSE_RIGHT.y;
-        player.width = character.MOUSE_RIGHT.width;
-        player.height = character.MOUSE_RIGHT.height;
-      }
+        player.x += move;
+        player.direction = 1;
+    }
     if (downKeys['ArrowUp']){
-        player.y -= 10;
-        player.cx = character.MOUSE_UP.x;
-        player.cy = character.MOUSE_UP.y;
-        player.width = character.MOUSE_UP.width;
-        player.height = character.MOUSE_UP.height;
-      }
+        player.y -= move;
+        player.direction = 2;
+    }
     if (downKeys['ArrowDown']){
-        player.y += 10;
-        player.cx = character.MOUSE_DOWN.x;
-        player.cy = character.MOUSE_DOWN.y;
-        player.width = character.MOUSE_DOWN.width;
-        player.height = character.MOUSE_DOWN.height;
+        player.y += move;
+        player.direction = 3;
       }
 
     window.requestAnimationFrame(run);
