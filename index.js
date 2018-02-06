@@ -3,9 +3,10 @@ const context = canvas.getContext('2d');
 
 const src = 'resource/images/img_Character.png';
 const objectArray = [];
+let first = 0;
 let isPaused = false;
-let play = true;
-let main_screen = false;
+let play = false;
+let main_screen = true;
 let score = 0;
 let level = 700;
 let life = 3;
@@ -18,6 +19,37 @@ objectArray.push(player);
 player.x = canvas.width/2 - player.width/2;
 player.y = canvas.height/2 - player.height/2;
 //화면 중간에서 리스폰
+
+function clickCanvas(event){
+  var canvasRect = canvas.getBoundingClientRect();
+  var canvasX = event.pageX-canvasRect.left;
+  var canvasY = event.pageY-canvasRect.top;
+  
+  if(main_screen && canvasX >= canvas.width/2-start.width/2 && canvasX <= canvas.width/2-start.width/2+start.width
+  && canvasY >= canvas.height/2+60 && canvasY <= canvas.height/2+60+start.height){
+    play = true;
+    main_screen = false;
+    run();
+  }
+  else if(play && canvasX >= canvas.width-pause.width-5 && canvasX <= canvas.width-pause.width-5+pause.width
+  && canvasY >= 5 && canvasY <= 5+canvas.height){
+    isPaused = true;
+  }
+  else if(gameover && canvasX >= canvas.width/2-replay.width/2 && canvasX <= canvas.width/2-replay.width/2+replay.width
+  && canvasY >= canvas.height/2+90 && canvasY <= canvas.height/2+90+replay.height){
+    play = true;
+    main_screen = false;
+    score = 0;
+    level = 700;
+    life = 3;
+    move = 10;
+    gameover = false;
+    first = 0;
+    player.x = canvas.width/2 - player.width/2;
+    player.y = canvas.height/2 - player.height/2;
+    run();
+  }
+}
 
 function GameObject(cx, cy, width, height)
 {
@@ -60,6 +92,10 @@ const character = {
     DOWN_HURT: new Rect(142, 2, 46, 57),
     RIGHT_HURT: new Rect(240, 2, 52, 58),
     LEFT_HURT: new Rect(354, 2, 52, 58),
+    UP_RED: new Rect(409, 2, 47, 57),
+    DOWN_RED: new Rect(502, 2, 47, 57),
+    RIGHT_RED: new Rect(201, 2, 52, 58),
+    LEFT_RED: new Rect(554, 2, 52, 58),
     FORK_UP: new Rect(14, 82, 21, 115),
     FORK_DOWN: new Rect(164, 82, 21, 115),
     FORK_RIGHT: new Rect(42, 114, 115, 21),
@@ -71,8 +107,8 @@ const character = {
     CHEESE: new Rect(389, 90, 40, 32),
     PEPPER: new Rect(445, 91, 30, 45),
     HEART: new Rect(389, 152, 23, 22),
-    REPLAY: new Rect(431, 12, 36, 36),
-    PAUSE: new Rect(476, 12, 36, 36),
+    REPLAY: new Rect(491, 88, 36, 36),
+    PAUSE: new Rect(536, 88, 36, 36),
 }
 
 let heart =
@@ -310,6 +346,7 @@ if(play) window.requestAnimationFrame(run);
 if(main_screen) window.requestAnimationFrame(main);
 
 function main(){
+
   context.fillStyle = '#e7c67e';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -325,29 +362,40 @@ function main(){
   window.requestAnimationFrame(main);
 }
 
+function gameover_screen(){
+  context.fillStyle = 'black';
+  context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기
+
+  context.font = "30px Impact"; //폰트의 크기, 글꼴체 지정
+  context.fillStyle = '#c02026'; //색상지정
+
+  gameover_text.x = canvas.width/2-gameover_text.width/2;
+  gameover_text.y = canvas.height/2-gameover_text.height - 25;
+  context.drawImage(gameover_text.image, gameover_text.x,
+  gameover_text.y, gameover_text.width, gameover_text.height);
+
+  replay.x = canvas.width/2-replay.width/2;
+  replay.y = canvas.height/2+90;
+  context.drawImage(replay.image, replay.cx, replay.cy, replay.width,
+    replay.height, replay.x, replay.y, replay.width, replay.height);
+
+  context.fillText("score : "+score, canvas.width/2-55, canvas.height/2+45)
+  context.fill();
+
+  window.requestAnimationFrame(gameover_screen);
+}
+
 function run()
 {
-    if (gameover) {
-        //배경색 변경
-        context.fillStyle = 'black';
-        context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기
 
-        context.font = "30px Impact"; //폰트의 크기, 글꼴체 지정
-        context.fillStyle = '#c02026'; //색상지정
+  if(!first){
+    objectArray.length = 1;
+    ++first;
+  }
 
-        gameover_text.x = canvas.width/2-gameover_text.width/2;
-        gameover_text.y = canvas.height/2-gameover_text.height - 25;
-        context.drawImage(gameover_text.image, gameover_text.x,
-        gameover_text.y, gameover_text.width, gameover_text.height);
-
-        replay.x = canvas.width/2-replay.width/2;
-        replay.y = canvas.height/2+90;
-        context.drawImage(replay.image, replay.cx, replay.cy, replay.width,
-          replay.height, replay.x, replay.y, replay.width, replay.height);
-
-        context.fillText("score : "+score, canvas.width/2-55, canvas.height/2+45)
-        context.fill();
-        return;
+    if (gameover){
+      gameover_screen();
+      return;
     }
 
     context.fillStyle = '#e7c67e';
@@ -406,6 +454,31 @@ function run()
                       break;
           }
         }
+
+        else if(player.pc){
+          switch(player.direction){
+            case 0: player.cx = character.LEFT_RED.x;
+                    player.cy = character.LEFT_RED.y;
+                    player.width = character.LEFT_RED.width;
+                    player.height = character.LEFT_RED.height;
+                    break;
+            case 1: player.cx = character.RIGHT_RED.x;
+                    player.cy = character.RIGHT_RED.y;
+                    player.width = character.RIGHT_RED.width;
+                    player.height = character.RIGHT_RED.height;
+                    break;
+            case 2: player.cx = character.UP_RED.x;
+                    player.cy = character.UP_RED.y;
+                    player.width = character.UP_RED.width;
+                    player.height = character.UP_RED.height;
+                    break;
+            case 3: player.cx = character.DOWN_RED.x;
+                    player.cy = character.DOWN_RED.y;
+                    player.width = character.DOWN_RED.width;
+                    player.height = character.DOWN_RED.height;
+                    break;
+        }
+      }
 
         else{
           switch(player.direction){
