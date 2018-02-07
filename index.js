@@ -20,11 +20,17 @@ player.x = canvas.width/2 - player.width/2;
 player.y = canvas.height/2 - player.height/2;
 //화면 중간에서 리스폰
 
+function mouseover(event){
+  var canvasRect = canvas.getBoundingClientRect();
+  var canvasX = event.pageX-canvasRect.left;
+  var canvasY = event.pageY-canvasRect.top;
+}
+
 function clickCanvas(event){
   var canvasRect = canvas.getBoundingClientRect();
   var canvasX = event.pageX-canvasRect.left;
   var canvasY = event.pageY-canvasRect.top;
-  
+
   if(main_screen && canvasX >= canvas.width/2-start.width/2 && canvasX <= canvas.width/2-start.width/2+start.width
   && canvasY >= canvas.height/2+60 && canvasY <= canvas.height/2+60+start.height){
     play = true;
@@ -33,7 +39,9 @@ function clickCanvas(event){
   }
   else if(play && canvasX >= canvas.width-pause.width-5 && canvasX <= canvas.width-pause.width-5+pause.width
   && canvasY >= 5 && canvasY <= 5+canvas.height){
+    console.log("in");
     isPaused = true;
+    play = false;
   }
   else if(gameover && canvasX >= canvas.width/2-replay.width/2 && canvasX <= canvas.width/2-replay.width/2+replay.width
   && canvasY >= canvas.height/2+90 && canvasY <= canvas.height/2+90+replay.height){
@@ -92,10 +100,6 @@ const character = {
     DOWN_HURT: new Rect(142, 2, 46, 57),
     RIGHT_HURT: new Rect(240, 2, 52, 58),
     LEFT_HURT: new Rect(354, 2, 52, 58),
-    UP_RED: new Rect(409, 2, 47, 57),
-    DOWN_RED: new Rect(502, 2, 47, 57),
-    RIGHT_RED: new Rect(201, 2, 52, 58),
-    LEFT_RED: new Rect(554, 2, 52, 58),
     FORK_UP: new Rect(14, 82, 21, 115),
     FORK_DOWN: new Rect(164, 82, 21, 115),
     FORK_RIGHT: new Rect(42, 114, 115, 21),
@@ -456,29 +460,7 @@ function run()
         }
 
         else if(player.pc){
-          switch(player.direction){
-            case 0: player.cx = character.LEFT_RED.x;
-                    player.cy = character.LEFT_RED.y;
-                    player.width = character.LEFT_RED.width;
-                    player.height = character.LEFT_RED.height;
-                    break;
-            case 1: player.cx = character.RIGHT_RED.x;
-                    player.cy = character.RIGHT_RED.y;
-                    player.width = character.RIGHT_RED.width;
-                    player.height = character.RIGHT_RED.height;
-                    break;
-            case 2: player.cx = character.UP_RED.x;
-                    player.cy = character.UP_RED.y;
-                    player.width = character.UP_RED.width;
-                    player.height = character.UP_RED.height;
-                    break;
-            case 3: player.cx = character.DOWN_RED.x;
-                    player.cy = character.DOWN_RED.y;
-                    player.width = character.DOWN_RED.width;
-                    player.height = character.DOWN_RED.height;
-                    break;
-        }
-      }
+       }
 
         else{
           switch(player.direction){
@@ -556,8 +538,8 @@ function run()
 
         if(checkCollision(player, obj)) {
           if(obj.cheese){
-            if(!player.hurt && life<3 && !player.cc){
-              obj.eaten = true;
+            obj.eaten = true;
+            if(life<3 && !player.cc){
               player.cc = true;
               ++life;
               setTimeout(function(){
@@ -567,12 +549,12 @@ function run()
           }
 
           else if(obj.pepper){
-            if(!player.hurt && !player.pc){
-              obj.eaten = true;
+            obj.eaten = true;
+            if(!player.pc){
               player.pc = true;
-              move += 3;
+              move += 5;
               setTimeout(function(){
-                  move -= 3;
+                  move -= 5;
                   player.pc = false;
               },4000);
             }
@@ -599,6 +581,7 @@ function run()
     window.addEventListener('focus', function(e) {
       e.preventDefault();
       isPaused = false;
+      play = true;
     });
 
     if (downKeys['ArrowLeft']){
