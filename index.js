@@ -14,6 +14,9 @@ let move = 10;
 let gameover = false;
 let tmp = 0;
 let r = 0;
+let a = 0;
+let ishelp = false;
+let temp = 0;
 
 let player = new GameObject(2, 2, 47, 57);
 objectArray.push(player);
@@ -24,9 +27,12 @@ player.y = canvas.height/2 - player.height/2;
 
 function paused(){
   if(!isPaused) return;
-  context.fillStyle = 'rgba(221, 221, 221, 0.1)';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.fill();
+  if(!a){
+    context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fill();
+    ++a;
+  }
   context.drawImage(home.image, home.cx, home.cy, home.width, home.height,
   canvas.width/2-home.width-5, canvas.height/2-home.height/2, home.width, home.height);
   context.drawImage(replay.image, replay.cx, replay.cy, home.width, home.height,
@@ -35,33 +41,54 @@ function paused(){
   window.requestAnimationFrame(paused);
 }
 
+function dis(){
+  if(!ishelp) return;
+  context.drawImage(manual.image, 0, 0, manual.width, manual.height);
+  context.drawImage(close.image, 900, 35, close.width, close.height);
+  window.requestAnimationFrame(dis);
+}
+
 function clickCanvas(event){
   var canvasRect = canvas.getBoundingClientRect();
   var canvasX = event.pageX-canvasRect.left;
   var canvasY = event.pageY-canvasRect.top;
 
-  if(main_screen && canvasX >= canvas.width/2-start.width/2 && canvasX <= canvas.width/2-start.width/2+start.width
-  && canvasY >= canvas.height/2+60 && canvasY <= canvas.height/2+60+start.height){
+  if(main_screen && !ishelp && !play && canvasX >= canvas.width/2-start.width/2 &&
+    canvasX <= canvas.width/2-start.width/2+start.width &&
+    canvasY >= canvas.height/2+60 && canvasY <= canvas.height/2+60+start.height){
     play = true;
     main_screen = false;
     run();
   }
 
-  else if(main_screen && canvasX >= canvas.width/2-help.width/2 && canvasX <= canvas.width/2-help.width/2+help.width
-  && canvasY >= canvas.height/2+start.height+100 && canvasY <= canvas.height/2+start.height+100+help.height){
-
+  else if(main_screen && !ishelp && !play && canvasX >= canvas.width/2-help.width/2
+    && canvasX <= canvas.width/2-help.width/2+help.width && canvasY >= canvas.height/2+
+    start.height+100 && canvasY <= canvas.height/2+start.height+100+help.height){
+    main_screen = false;
+    ishelp = true;
+    dis();
   }
 
-  if(play && canvasX >= canvas.width-pause.width-5 && canvasX <= canvas.width-pause.width-5+pause.width
-  && canvasY >= 5 && canvasY <= 5+canvas.height){
+  else if(ishelp && !main_screen && !play && canvasX >= 900 && canvasX <= 900+close.width
+  && canvasY >= 35 && canvasY <= 35+close.height){
+    ishelp = false;
+    main_screen = true;
+    main();
+  }
+
+  else if(play && !main_screen && !ishelp && !isPaused &&
+    canvasX >= canvas.width-pause.width-5 && canvasX <= canvas.width-pause.width-5+pause.width
+    && canvasY >= 5 && canvasY <= 5+canvas.height){
     tmp = level;
     isPaused = true;
     play = false;
+    a = 0;
     paused();
   }
 
-  if(isPaused && canvasX >= canvas.width/2-home.width-5 && canvasX <= canvas.width/2-home.width-5+home.width
-  && canvasY >= canvas.height/2-home.height/2 && canvasY <= canvas.height/2-home.height/2+home.height){
+  else if(isPaused && !main_screen && !ishelp && !play && canvasX >= canvas.width/2-home.width-5 &&
+    canvasX <= canvas.width/2-home.width-5+home.width &&
+    canvasY >= canvas.height/2-home.height/2 && canvasY <= canvas.height/2-home.height/2+home.height){
     play = false;
     main_screen = true;
     score = 0;
@@ -70,20 +97,22 @@ function clickCanvas(event){
     move = 10;
     gameover = false;
     first = 0;
+    ishelp = false;
     player.x = canvas.width/2 - player.width/2;
     player.y = canvas.height/2 - player.height/2;
     main();
   }
 
-  if(isPaused && canvasX >= canvas.width/2+5 && canvasX <= canvas.width/2+5+replay.width
+  else if(isPaused && !play && !ishelp && !main_screen && canvasX >= canvas.width/2+5 && canvasX <= canvas.width/2+5+replay.width
   && canvasY >= canvas.height/2-replay.height/2 && canvasY <= canvas.height/2-replay.height/2+replay.height){
     level = tmp;
     play = true;
     isPaused = false;
+    ishelp = false;
     run();
   }
 
-  else if(gameover && canvasX >= canvas.width/2-replay.width/2 && canvasX <= canvas.width/2-replay.width/2+replay.width
+  else if(gameover && !ishelp && !main_screen && canvasX >= canvas.width/2-replay.width/2 && canvasX <= canvas.width/2-replay.width/2+replay.width
   && canvasY >= canvas.height/2+90 && canvasY <= canvas.height/2+90+replay.height){
     play = true;
     main_screen = false;
@@ -93,6 +122,7 @@ function clickCanvas(event){
     move = 10;
     gameover = false;
     first = 0;
+    ishelp = false;
     player.x = canvas.width/2 - player.width/2;
     player.y = canvas.height/2 - player.height/2;
     run();
@@ -100,8 +130,11 @@ function clickCanvas(event){
 }
 
 window.addEventListener('blur', function(e) {
-  play = false;
-  isPaused = true;
+  if(play){
+    play = false;
+    isPaused = true;
+    temp = 1;
+  }
   if(!r){
     tmp = level;
     ++r;
@@ -109,11 +142,17 @@ window.addEventListener('blur', function(e) {
 });
 
 window.addEventListener('focus', function(e) {
-  play = true;
-  isPaused = false;
+  if(isPaused && temp){
+    play = true;
+    isPaused = false;
+  }
   level = tmp;
   r = 0;
-  run();
+  if(play) run();
+  else if(main_screen) main();
+  else if(ishelp) dis();
+  else if(gameover) gameover_screen();
+  else paused();
 });
 
 function GameObject(cx, cy, width, height)
@@ -172,6 +211,12 @@ const character = {
     PAUSE: new Rect(536, 88, 36, 36),
     HOME: new Rect(581, 88, 36, 36),
 }
+
+let close = new GameObject(0, 0, 70, 70);
+close.image.src = 'resource/images/icon_x.png';
+
+let manual = new GameObject(0, 0, 1000, 700);
+manual.image.src = 'resource/images/help.png';
 
 let heart =
 new GameObject(character.HEART.x, character.HEART.y,
