@@ -24,9 +24,9 @@ player.y = canvas.height/2 - player.height/2;
 
 function paused(){
   if(!isPaused) return;
-  //context.fillStyle = 'black';
-  //context.fillRect(0, 0, canvas.width, canvas.height);
-  //context.fill();
+  context.fillStyle = 'rgba(221, 221, 221, 0.1)';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fill();
   context.drawImage(home.image, home.cx, home.cy, home.width, home.height,
   canvas.width/2-home.width-5, canvas.height/2-home.height/2, home.width, home.height);
   context.drawImage(replay.image, replay.cx, replay.cy, home.width, home.height,
