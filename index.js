@@ -12,6 +12,8 @@ let level = 700;
 let life = 3;
 let move = 10;
 let gameover = false;
+let tmp = 0;
+let r = 0;
 
 let player = new GameObject(2, 2, 47, 57);
 objectArray.push(player);
@@ -20,10 +22,17 @@ player.x = canvas.width/2 - player.width/2;
 player.y = canvas.height/2 - player.height/2;
 //화면 중간에서 리스폰
 
-function mouseover(event){
-  var canvasRect = canvas.getBoundingClientRect();
-  var canvasX = event.pageX-canvasRect.left;
-  var canvasY = event.pageY-canvasRect.top;
+function paused(){
+  if(!isPaused) return;
+  //context.fillStyle = 'black';
+  //context.fillRect(0, 0, canvas.width, canvas.height);
+  //context.fill();
+  context.drawImage(home.image, home.cx, home.cy, home.width, home.height,
+  canvas.width/2-home.width-5, canvas.height/2-home.height/2, home.width, home.height);
+  context.drawImage(replay.image, replay.cx, replay.cy, home.width, home.height,
+      canvas.width/2+5, canvas.height/2-replay.height/2, replay.width, replay.height);
+
+  window.requestAnimationFrame(paused);
 }
 
 function clickCanvas(event){
@@ -37,12 +46,43 @@ function clickCanvas(event){
     main_screen = false;
     run();
   }
-  else if(play && canvasX >= canvas.width-pause.width-5 && canvasX <= canvas.width-pause.width-5+pause.width
+
+  else if(main_screen && canvasX >= canvas.width/2-help.width/2 && canvasX <= canvas.width/2-help.width/2+help.width
+  && canvasY >= canvas.height/2+start.height+100 && canvasY <= canvas.height/2+start.height+100+help.height){
+
+  }
+
+  if(play && canvasX >= canvas.width-pause.width-5 && canvasX <= canvas.width-pause.width-5+pause.width
   && canvasY >= 5 && canvasY <= 5+canvas.height){
-    console.log("in");
+    tmp = level;
     isPaused = true;
     play = false;
+    paused();
   }
+
+  if(isPaused && canvasX >= canvas.width/2-home.width-5 && canvasX <= canvas.width/2-home.width-5+home.width
+  && canvasY >= canvas.height/2-home.height/2 && canvasY <= canvas.height/2-home.height/2+home.height){
+    play = false;
+    main_screen = true;
+    score = 0;
+    level = 700;
+    life = 3;
+    move = 10;
+    gameover = false;
+    first = 0;
+    player.x = canvas.width/2 - player.width/2;
+    player.y = canvas.height/2 - player.height/2;
+    main();
+  }
+
+  if(isPaused && canvasX >= canvas.width/2+5 && canvasX <= canvas.width/2+5+replay.width
+  && canvasY >= canvas.height/2-replay.height/2 && canvasY <= canvas.height/2-replay.height/2+replay.height){
+    level = tmp;
+    play = true;
+    isPaused = false;
+    run();
+  }
+
   else if(gameover && canvasX >= canvas.width/2-replay.width/2 && canvasX <= canvas.width/2-replay.width/2+replay.width
   && canvasY >= canvas.height/2+90 && canvasY <= canvas.height/2+90+replay.height){
     play = true;
@@ -58,6 +98,23 @@ function clickCanvas(event){
     run();
   }
 }
+
+window.addEventListener('blur', function(e) {
+  play = false;
+  isPaused = true;
+  if(!r){
+    tmp = level;
+    ++r;
+  }
+});
+
+window.addEventListener('focus', function(e) {
+  play = true;
+  isPaused = false;
+  level = tmp;
+  r = 0;
+  run();
+});
 
 function GameObject(cx, cy, width, height)
 {
@@ -96,10 +153,10 @@ const character = {
     MOUSE_DOWN:new Rect(95, 2, 47, 57),
     MOUSE_RIGHT: new Rect(188, 2, 52, 56),
     MOUSE_LEFT: new Rect(302, 2, 52, 56),
-    UP_HURT: new Rect(49, 2, 46, 57),
-    DOWN_HURT: new Rect(142, 2, 46, 57),
-    RIGHT_HURT: new Rect(240, 2, 52, 58),
-    LEFT_HURT: new Rect(354, 2, 52, 58),
+    UP_HURT: new Rect(409, 2, 47, 57),
+    DOWN_HURT: new Rect(456, 2, 47, 57),
+    RIGHT_HURT: new Rect(501, 2, 52, 58),
+    LEFT_HURT: new Rect(554, 2, 52, 58),
     FORK_UP: new Rect(14, 82, 21, 115),
     FORK_DOWN: new Rect(164, 82, 21, 115),
     FORK_RIGHT: new Rect(42, 114, 115, 21),
@@ -113,6 +170,7 @@ const character = {
     HEART: new Rect(389, 152, 23, 22),
     REPLAY: new Rect(491, 88, 36, 36),
     PAUSE: new Rect(536, 88, 36, 36),
+    HOME: new Rect(581, 88, 36, 36),
 }
 
 let heart =
@@ -139,6 +197,9 @@ let pause =
 new GameObject(character.PAUSE.x, character.PAUSE.y,
   character.PAUSE.width, character.PAUSE.height);
 
+let home =
+new GameObject(character.HOME.x, character.HOME.y,
+  character.HOME.width, character.HOME.height);
 
 function cheese(){
   let newObstacle = new GameObject(character.CHEESE.x, character.CHEESE.y,
@@ -317,7 +378,6 @@ function right(obj){
 
 // 1초마다 한번씩 실행
 setInterval(function() {
-    if(isPaused) play = false;
     if(play){
       let p = parseInt(Math.random()*15);
       if(!p)cheese();
@@ -349,24 +409,82 @@ function onKeyUp(event)
 if(play) window.requestAnimationFrame(run);
 if(main_screen) window.requestAnimationFrame(main);
 
-function main(){
+let startO = new GameObject(0, 0, 141, 51);
+startO.image.src = 'resource/images/text_s_start.png';
+startO.x = canvas.width/2-startO.width/2;
+startO.y = canvas.height/2+60;
 
+let helpO = new GameObject(0, 0, 108, 50);
+helpO.image.src = 'resource/images/text_s_help.png';
+helpO.x = canvas.width/2-helpO.width/2;
+helpO.y = canvas.height/2+startO.height+100;
+
+let startP = new GameObject(0, 0, 141, 51);
+startP.image.src = 'resource/images/text_start.png';
+startP.x = canvas.width/2-start.width/2;
+startP.y = canvas.height/2+60;
+
+let helpP = new GameObject(0, 0, 108, 50);
+helpP.image.src = 'resource/images/text_help.png';
+helpP.x = canvas.width/2-help.width/2;
+helpP.y = canvas.height/2+start.height+100;
+
+function main(){
+  if(!main_screen) return;
   context.fillStyle = '#e7c67e';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
   context.drawImage(title.image, 0,
     canvas.height/2-title.height+30, title.width, title.height);
 
-  context.drawImage(start.image, canvas.width/2-start.width/2,
-    canvas.height/2+60, start.width, start.height);
+  context.drawImage(startP.image, startP.x,
+    startP.y , startP.width, startP.height);
 
-  context.drawImage(help.image, canvas.width/2-help.width/2,
-      canvas.height/2+start.height+100, help.width, help.height);
+  context.drawImage(helpP.image, helpP.x,
+    helpP.y, helpP.width, helpP.height);
+
+  canvas.onmousemove = function(e){
+    var canvasRect = canvas.getBoundingClientRect();
+    var canvasX = event.pageX-canvasRect.left;
+    var canvasY = event.pageY-canvasRect.top;
+
+    if(main_screen && canvasX >= canvas.width/2-start.width/2 && canvasX <= canvas.width/2-start.width/2+start.width
+    && canvasY >= canvas.height/2+60 && canvasY <= canvas.height/2+60+start.height){
+      startP.image = startO.image;
+      startP.x = startO.x;
+      startP.y = startO.y;
+      startP.width = startO.width;
+      startP.height = startO.height;
+    }
+    else{
+      startP.image = start.image;
+      startP.x = canvas.width/2-start.width/2;
+      startP.width = start.width;
+      startP.height = start.height;
+    }
+    if(main_screen && canvasX >= canvas.width/2-help.width/2 && canvasX <= canvas.width/2-help.width/2+help.width
+    && canvasY >= canvas.height/2+start.height+100 && canvasY <= canvas.height/2+start.height+100+help.height){
+      helpP.image = helpO.image;
+      helpP.x = helpO.x;
+      helpP.y = helpO.y;
+      helpP.width = helpO.width;
+      helpP.height = helpO.height;
+    }
+    else{
+      helpP.image = help.image;
+      helpP.x = canvas.width/2-help.width/2;
+      helpP.y = canvas.height/2+start.height+100;
+      helpP.width = help.width;
+      helpP.height = help.height;
+    }
+  }
 
   window.requestAnimationFrame(main);
 }
 
 function gameover_screen(){
+
+  if(!gameover)return;
   context.fillStyle = 'black';
   context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기
 
@@ -393,6 +511,7 @@ function run()
 {
 
   if(!first){
+    isPaused = false;
     objectArray.length = 1;
     ++first;
   }
@@ -402,9 +521,10 @@ function run()
       return;
     }
 
+    if(!play)return;
+
     context.fillStyle = '#e7c67e';
-    context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기(브라우저 크기 받아와서)
-    //fillRect 대신에 이미지로 바꾸기
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
     context.font = "20px Impact";
     context.fillStyle = 'black';
@@ -458,9 +578,6 @@ function run()
                       break;
           }
         }
-
-        else if(player.pc){
-       }
 
         else{
           switch(player.direction){
@@ -536,7 +653,7 @@ function run()
             }
         }
 
-        if(checkCollision(player, obj)) {
+        if(!isPaused && checkCollision(player, obj)) {
           if(obj.cheese){
             obj.eaten = true;
             if(life<3 && !player.cc){
@@ -572,17 +689,6 @@ function run()
           }
         }
     }
-
-    window.addEventListener('blur', function(e) {
-      e.preventDefault();
-      isPaused = true;
-    });
-
-    window.addEventListener('focus', function(e) {
-      e.preventDefault();
-      isPaused = false;
-      play = true;
-    });
 
     if (downKeys['ArrowLeft']){
         player.x -= move;
