@@ -13,7 +13,6 @@ let life = 3;
 let move = 10;
 let gameover = false;
 let tmp = 0;
-let r = 0;
 let a = 0;
 let ishelp = false;
 let temp = 0;
@@ -130,26 +129,21 @@ function clickCanvas(event){
 }
 
 window.addEventListener('blur', function(e) {
-  if(play){
+  if(play && !temp){
     play = false;
     isPaused = true;
     temp = 1;
-  }
-  if(!r){
     tmp = level;
-    ++r;
   }
 });
 
 window.addEventListener('focus', function(e) {
   if(isPaused && temp){
-    play = true;
-    isPaused = false;
+    a = 0;
+    temp = 0;
+    level = tmp;
   }
-  level = tmp;
-  r = 0;
-  if(play) run();
-  else if(main_screen) main();
+  if(main_screen) main();
   else if(ishelp) dis();
   else if(gameover) gameover_screen();
   else paused();
