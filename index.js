@@ -13,9 +13,10 @@ let life = 3;
 let move = 10;
 let gameover = false;
 let tmp = 0;
-let a = 0;
 let ishelp = false;
 let temp = 0;
+
+let audio = new Audio('audio/ending.wav');
 
 let player = new GameObject(2, 2, 47, 57);
 objectArray.push(player);
@@ -26,11 +27,11 @@ player.y = canvas.height/2 - player.height/2;
 
 function paused(){
   if(!isPaused) return;
-  if(!a){
+  if(!first){
     context.fillStyle = 'rgba(0, 0, 0, 0.5)';
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.fill();
-    ++a;
+    ++first;
   }
   context.drawImage(home.image, home.cx, home.cy, home.width, home.height,
   canvas.width/2-home.width-5, canvas.height/2-home.height/2, home.width, home.height);
@@ -57,8 +58,10 @@ function clickCanvas(event){
     canvasY >= canvas.height/2+60 && canvasY <= canvas.height/2+60+start.height){
     play = true;
     main_screen = false;
+    first = 0;
+    audio.pause();
     run();
-  }
+  }//main화면에서 start누름
 
   else if(main_screen && !ishelp && !play && canvasX >= canvas.width/2-help.width/2
     && canvasX <= canvas.width/2-help.width/2+help.width && canvasY >= canvas.height/2+
@@ -66,14 +69,14 @@ function clickCanvas(event){
     main_screen = false;
     ishelp = true;
     dis();
-  }
+  }//main화면에서 help누름
 
   else if(ishelp && !main_screen && !play && canvasX >= 900 && canvasX <= 900+close.width
   && canvasY >= 35 && canvasY <= 35+close.height){
     ishelp = false;
     main_screen = true;
     main();
-  }
+  }//help화면에서 x누름
 
   else if(play && !main_screen && !ishelp && !isPaused &&
     canvasX >= canvas.width-pause.width-5 && canvasX <= canvas.width-pause.width-5+pause.width
@@ -81,52 +84,60 @@ function clickCanvas(event){
     tmp = level;
     isPaused = true;
     play = false;
-    a = 0;
+    first = 0;
+    //audio.pause();
     paused();
-  }
+  }//play상황에서 일시중지 누름
 
   else if(isPaused && !main_screen && !ishelp && !play && canvasX >= canvas.width/2-home.width-5 &&
     canvasX <= canvas.width/2-home.width-5+home.width &&
     canvasY >= canvas.height/2-home.height/2 && canvasY <= canvas.height/2-home.height/2+home.height){
+    first = 0;
+    isPaused = false;
     play = false;
+    gameover = false;
+    ishelp = false;
     main_screen = true;
     score = 0;
     level = 700;
     life = 3;
     move = 10;
-    gameover = false;
-    first = 0;
-    ishelp = false;
+    tmp = 0;
+    temp = 0;
+    audio.pause();
     player.x = canvas.width/2 - player.width/2;
     player.y = canvas.height/2 - player.height/2;
     main();
-  }
+  }//일시중지 상황에서 main으로 다시 감
 
   else if(isPaused && !play && !ishelp && !main_screen && canvasX >= canvas.width/2+5 && canvasX <= canvas.width/2+5+replay.width
   && canvasY >= canvas.height/2-replay.height/2 && canvasY <= canvas.height/2-replay.height/2+replay.height){
     level = tmp;
     play = true;
     isPaused = false;
-    ishelp = false;
     run();
-  }
+  }//일시중지 상황에서 다시 play함
 
   else if(gameover && !ishelp && !main_screen && canvasX >= canvas.width/2-replay.width/2 && canvasX <= canvas.width/2-replay.width/2+replay.width
   && canvasY >= canvas.height/2+90 && canvasY <= canvas.height/2+90+replay.height){
-    play = true;
+    first = 0;
+    isPaused = false;
+    gameover = false;
+    ishelp = false;
     main_screen = false;
+    play = true;
     score = 0;
     level = 700;
     life = 3;
     move = 10;
-    gameover = false;
-    first = 0;
-    ishelp = false;
+    tmp = 0;
+    temp = 0;
     player.x = canvas.width/2 - player.width/2;
     player.y = canvas.height/2 - player.height/2;
+    audio.pause();
     run();
   }
-}
+}//게임종료상황에서 replay누름
 
 window.addEventListener('blur', function(e) {
   if(play && !temp){
@@ -139,7 +150,6 @@ window.addEventListener('blur', function(e) {
 
 window.addEventListener('focus', function(e) {
   if(isPaused && temp){
-    a = 0;
     temp = 0;
     level = tmp;
   }
@@ -470,6 +480,12 @@ helpP.y = canvas.height/2+start.height+100;
 
 function main(){
   if(!main_screen) return;
+  if(!first){
+    audio.src = 'audio/bgm.mp3';
+    first = 1;
+  }
+  audio.play();
+
   context.fillStyle = '#e7c67e';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -524,6 +540,11 @@ function main(){
 function gameover_screen(){
 
   if(!gameover)return;
+  if(!first){
+    audio.src = 'audio/ending.wav';
+    audio.play();
+    first = 1;
+  }
   context.fillStyle = 'black';
   context.fillRect(0, 0, canvas.width, canvas.height); //가운데 정렬로 바꾸기
 
@@ -556,6 +577,8 @@ function run()
   }
 
     if (gameover){
+      first = 0;
+      play = false;
       gameover_screen();
       return;
     }
@@ -694,6 +717,8 @@ function run()
 
         if(!isPaused && checkCollision(player, obj)) {
           if(obj.cheese){
+            audio.src = 'audio/cheese.wav';
+            audio.play();
             obj.eaten = true;
             if(life<3 && !player.cc){
               player.cc = true;
@@ -706,6 +731,8 @@ function run()
 
           else if(obj.pepper){
             obj.eaten = true;
+            audio.src = 'audio/running.mp3';
+            audio.play();
             if(!player.pc){
               player.pc = true;
               move += 5;
@@ -717,8 +744,10 @@ function run()
           }
 
           else {
-            if(!life) gameover = true;
+            if(life <= 0) gameover = true;
             else if(!player.hurt){
+              audio.src = 'audio/hurt.WAV';
+              audio.play();
               --life;
               player.hurt = true;
               setTimeout(function(){
@@ -728,6 +757,8 @@ function run()
           }
         }
     }
+
+    if(life <= 0) gameover = true;
 
     if (downKeys['ArrowLeft']){
         player.x -= move;
