@@ -145,6 +145,7 @@ window.addEventListener('blur', function(e) {
     isPaused = true;
     temp = 1;
     tmp = level;
+    first = 0;
   }
 });
 
